@@ -8,7 +8,7 @@ $(function() {
     
     // If the user is logged in
     if (currentUser) {
-        loggedInUser();
+        loggedInUser(currentUser);
     }
 
     $("#credentials").submit(function(event) {
@@ -21,10 +21,15 @@ $(function() {
         logOut();
         return false;
     });
+
+    $('#add-url').click(function() {
+        addUrl();
+    });
 })
 
 function signUp() {
     var user = new Parse.User();
+    currentUser.setACL(new Parse.ACL(currentUser));
     user.set('username', $('#email').val());
     user.set('password', $('#password').val());
     user.set('email', $('#email').val());
@@ -51,7 +56,6 @@ function logIn() {
     Parse.User.logIn($('#email').val(), $('#password').val(), {
         success: function(user) {
             // Do stuff after successful login.
-            var currentUser = Parse.User.current();
             loggedInUser();
         },
         error: function(user, error) {
@@ -61,13 +65,64 @@ function logIn() {
     });
 }
 
-function loggedInUser() {
+function loggedInUser(currentUser) {
+    // Set the views
     $('#sign-in').hide();
-    $('#app').show();   
+    $('#app').show();
+
+    // Get list of user's saved urls
+    retrieveUrls(currentUser);
 }
 
 function logOut() {
     Parse.User.logOut();
     $('#sign-in').show();
-    $('#app').hide();       
+    $('#app').hide();
+    retrieveUrls();
+}
+
+function addUrl() {
+    var newUrl = prompt('What\' the URL?');
+    var currentUser = Parse.User.current();
+    email = currentUser.getEmail();
+
+    var Url = Parse.Object.extend("Url");
+    var url = new Url();
+    url.setACL(new Parse.ACL(currentUser));
+
+    url.set('email', email);
+    url.set('url', newUrl);
+    url.save(null, {
+        success: function(data) {
+            retrieveUrls(currentUser);
+        },
+        error: function(error) {
+            alert('Error saving new flow');
+        }
+    })
+}
+
+function removeUrl() {
+
+}
+
+function retrieveUrls(currentUser) {
+    var Url = Parse.Object.extend("Url");
+    var query = new Parse.Query(Url);
+
+    // Clear list of URLS
+    $('#urls').empty();
+
+    // Find all flows associated with the current username.
+    query.equalTo('email', currentUser.get('email'));
+    query.find({
+        success: function(data) {
+            $(data).each(function() {
+                $('#urls').append('<li>' + this.get('url') + '</li>');
+            })
+        },
+        error: function(error) {
+            console.log('Error getting data');
+        }
+    })
 }
