@@ -1,54 +1,41 @@
-<script>
-    function bookmarklet() {
-        var head = document.getElementsByTagName('head')[0];
-        var urls = [
-            'http://www.parsecdn.com/js/parse-1.3.0.min.js',
-            'http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js'
-        ]
+<a href="javascript:(function() {
+    var head = document.getElementsByTagName('head')[0];
+    var urls = [
+        'http://www.parsecdn.com/js/parse-1.3.0.min.js',
+        'http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js'
+    ];
 
-        // Considered 'true' when done = number of scripts to be loaded
-        var done = 0;
+    var done = 0;
+    var scripts = [];
 
-        var scripts = [];
+    for (i = 0; i < urls.length; i++) {
+        scripts[i] = document.createElement('script');
+        scripts[i].src = urls[i];
 
-        for (i = 0; i < urls.length; i++) {
-            scripts[i] = document.createElement('script');
-            scripts[i].src = urls[i];
-            
-            // Attach handlers for all browsers
-            scripts[i].onload = scripts[i].onreadystatechange = function()
-            {
-                if( (done < urls.length) && ( !this.readyState 
-                            || this.readyState == "loaded" 
-                            || this.readyState == "complete") )
-                {
-                    done++;
+        scripts[i].onload = scripts[i].onreadystatechange = function() {
+            if ( (done < urls.length) && ( !this.readyState || this.readyState == 'loaded' || this.readyState == 'complete') ) {
+                done++;
 
-                    // Continue your code
+                if (done == urls.length) {
                     initBookmarklet();
-
-                    // Handle memory leak in IE
-                    // scripts[i].onload = scripts[i].onreadystatechange = null;
-                    // head.removeChild( scripts[i] );
                 }
             }
-            
-            head.appendChild(scripts[i]);
-        }
-
-        function initBookmarklet() {
-            (window.bookmarklet = function() {
-                Parse.initialize("9j411v3qMnha3ScVq4R3tfmBQetiO44pp6M3siK7", "ZSB9dwVSccu1o282JNEAChtv9jL6udvgOQXRR1pn");
-                var currentUser = Parse.User.current();
-                if (currentUser == null) {
-                    window.location.href = 'http://redmondo.github.io/daily-read';
-                } else {
-                    alert(currentUser.getEmail());
-                }
-            })();
-        }
+        };
+        head.appendChild(scripts[i]);
     };
-</script>
+    
+    function initBookmarklet() {
+        (window.bookmarklet = function() {
+            Parse.initialize('9j411v3qMnha3ScVq4R3tfmBQetiO44pp6M3siK7', 'ZSB9dwVSccu1o282JNEAChtv9jL6udvgOQXRR1pn');
+            var currentUser = Parse.User.current();
+            alert(currentUser);
+            if (currentUser == null) {
+                alert('going to log you in');
+                window.location.href = 'http://redmondo.github.io/daily-read';
+            } else {
+                alert(currentUser.getEmail());
+            }
+        })();
+    }
 
-<a href="javascript:bookmarklet();">test</a>
-
+})();">test</a>
