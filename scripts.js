@@ -29,7 +29,6 @@ $(function() {
 
 function signUp() {
     var user = new Parse.User();
-    user.setACL(new Parse.ACL(user));
     user.set('username', $('#email').val());
     user.set('password', $('#password').val());
     user.set('email', $('#email').val());
