@@ -8,7 +8,11 @@ $(function() {
     
     // If the user is logged in
     if (currentUser) {
-        loggedInUser(currentUser);
+        if (window.location.pathname.search('next') > 0) {
+            nextSite();
+        } else {
+            loggedInUser(currentUser);
+        }
     }
 
     $("#credentials").submit(function(event) {
@@ -29,7 +33,6 @@ $(function() {
 
 function signUp() {
     var user = new Parse.User();
-    currentUser.setACL(new Parse.ACL(currentUser));
     user.set('username', $('#email').val());
     user.set('password', $('#password').val());
     user.set('email', $('#email').val());
@@ -65,13 +68,13 @@ function logIn() {
     });
 }
 
-function loggedInUser(currentUser) {
+function loggedInUser() {
     // Set the views
     $('#sign-in').hide();
     $('#app').show();
 
     // Get list of user's saved urls
-    retrieveUrls(currentUser);
+    retrieveUrls();
 }
 
 function logOut() {
@@ -102,7 +105,12 @@ function addUrl() {
     })
 }
 
-function retrieveUrls(currentUser) {
+function removeUrl() {
+
+}
+
+function retrieveUrls() {
+    var currentUser = Parse.User.current();
     var Url = Parse.Object.extend("Url");
     var query = new Parse.Query(Url);
 
@@ -123,6 +131,20 @@ function retrieveUrls(currentUser) {
     })
 }
 
-function removeUrl() {
+function nextSite() {
+    var Url = Parse.Object.extend("Url");
+    var query = new Parse.Query(Url);
+    var currentUser = Parse.User.current();
+    var email = currentUser.getEmail();
 
+    query.equalTo("email", email);
+    query.find({
+        success: function(data) {
+            $(data).each(function() {
+                alert(this.get('url'));
+            })
+        },
+        error: function(error) {
+        }
+    })
 }

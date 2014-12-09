@@ -1,0 +1,6 @@
+{
+    "aws-access-key": "AKIAJYNFRQUMIJ2ARWEQ",
+    "aws-bucket-name": "dailyread.website",
+    "aws-bucket-website": "dailyread.website.s3-website-us-east-1.amazonaws.com",
+    "port": 8857
+}

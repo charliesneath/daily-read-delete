@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+  
+<h1>daily read</h1>
+<section id="sign-in">
+    <form id="credentials">
+        <p>email: <input id="email" type="text"></p>
+        <p>password: <input id="password" type="password"></p>
+        <input type="submit">
+    </form>
+</section>
+
+<section id="app">
+    <h1>links</h1>
+    <a id="add-url" href="javascript:void(0);">add new link</a>
+    <ul id="urls">
+    </ul>
+    <a id="logout" href="javascript:void(0);">logout</a>
+</section>
+
+{% endblock %}
