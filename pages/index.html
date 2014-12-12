@@ -2,6 +2,8 @@
 {% block content %}
   
 <h1>daily read</h1>
+<a id="logout" href="javascript:void(0);">logout</a>
+
 <section id="sign-in">
     <form id="credentials">
         <p>email: <input id="email" type="text"></p>
@@ -11,11 +13,17 @@
 </section>
 
 <section id="app">
-    <h1>links</h1>
+    <h2>instructions</h2>
+    <ol>
+        <li>add your favorite websites to the "daily read links" list below.</li>
+        <li>visit <a href="dailyread.website/next">dailyread.website/next</a> to shuffle the list and visit the next daily read site.</li>
+        <li>the app shuffles the list after you've visited each site once.</li>
+    </ol>
+
+    <h2>daily read links</h2>
     <a id="add-url" href="javascript:void(0);">add new link</a>
     <ul id="urls">
     </ul>
-    <a id="logout" href="javascript:void(0);">logout</a>
 </section>
 
 {% endblock %}

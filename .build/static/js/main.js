@@ -27,7 +27,7 @@ $(function() {
     });
 
     $('#add-url').click(function() {
-        addUrl();
+        addDailyReadUrl();
     });
 })
 
@@ -39,7 +39,22 @@ function signUp() {
 
     user.signUp(null, {
         success: function(user) {
-        // Hooray! Let them use the app now.
+            currentUser = Parse.User.current();
+
+            // Hooray! Let them use the app now.
+            var UserData = Parse.Object.extend("UserData");
+            var userData = new UserData();
+            
+            // Set permissions on the new data.
+            userData.setACL( new Parse.ACL(currentUser) );
+
+            // Create user's row
+            userData.set( 'email', currentUser.get('email') );
+            userData.set('dailyReadUrls', []);
+            userData.set('visitedUrls', []);
+            userData.save();
+            
+            // Do stuff with the new user.
             loggedInUser();
         },
         error: function(user, error) {
@@ -73,34 +88,52 @@ function loggedInUser() {
     $('#sign-in').hide();
     $('#app').show();
 
-    // Get list of user's saved urls
-    retrieveUrls();
+    // Get list of user's saved urls.
+    showDailyReadUrls();
 }
 
-function logOut() {
-    Parse.User.logOut();
-    $('#sign-in').show();
-    $('#app').hide();
-    retrieveUrls();
+function showDailyReadUrls() {
+    var currentUser = Parse.User.current();
+    var UserData = Parse.Object.extend("UserData");
+    var query = new Parse.Query(UserData);
+
+    // Get user's data.
+    query.equalTo( 'email', currentUser.getEmail() );
+    query.first({
+        success: function(data) {
+            var dailyReadUrls = data.get('dailyReadUrls');
+            if ( dailyReadUrls.length > 0 ) {
+                // Reset the list of URLs
+                $('#urls').empty();
+                $(dailyReadUrls).each(function() {
+                    $('#urls').append('<li>' + this + '</li>');
+                }
+            )}
+        },
+        error: function(error) {
+            alert(error.message);
+        }
+    })
 }
 
-function addUrl() {
-    var newUrl = prompt('What\' the URL?');
+function addDailyReadUrl() {
+    var newDailyReadUrl = prompt('What\'s the URL?');
+    
     var currentUser = Parse.User.current();
     email = currentUser.getEmail();
 
-    var Url = Parse.Object.extend("Url");
-    var url = new Url();
-    url.setACL(new Parse.ACL(currentUser));
-
-    url.set('email', email);
-    url.set('url', newUrl);
-    url.save(null, {
+    // Save the URLs to the user
+    var UserData = Parse.Object.extend("UserData");
+    var query = new Parse.Query(UserData);
+    query.equalTo('email', currentUser.get('email'));
+    query.first({
         success: function(data) {
-            retrieveUrls(currentUser);
+            data.addUnique('dailyReadUrls', newDailyReadUrl);
+            data.save();
+            showDailyReadUrls();
         },
         error: function(error) {
-            alert('Error saving new flow');
+            console.log('Error getting data');
         }
     })
 }
@@ -109,42 +142,49 @@ function removeUrl() {
 
 }
 
-function retrieveUrls() {
-    var currentUser = Parse.User.current();
-    var Url = Parse.Object.extend("Url");
-    var query = new Parse.Query(Url);
-
-    // Clear list of URLS
-    $('#urls').empty();
-
-    // Find all flows associated with the current username.
-    query.equalTo('email', currentUser.get('email'));
-    query.find({
-        success: function(data) {
-            $(data).each(function() {
-                $('#urls').append('<li>' + this.get('url') + '</li>');
-            })
-        },
-        error: function(error) {
-            console.log('Error getting data');
-        }
-    })
-}
-
 function nextSite() {
-    var Url = Parse.Object.extend("Url");
-    var query = new Parse.Query(Url);
+    var UserData = Parse.Object.extend("UserData");
+    var query = new Parse.Query(UserData);
     var currentUser = Parse.User.current();
     var email = currentUser.getEmail();
 
     query.equalTo("email", email);
-    query.find({
-        success: function(data) {
-            $(data).each(function() {
-                alert(this.get('url'));
-            })
+    query.first({
+        success: function(userData) {
+            
+            var foundNextUrl = false;
+            
+            while (!foundNextUrl) {
+            
+                // Find random index within length of URL index
+                var i = Math.floor(Math.random() * (userData.get('dailyReadUrls').length));
+                
+                // If the URL is *not* found then this can be used.
+                if (userData.get('visitedUrls').indexOf(userData.get('dailyReadUrls')[i]) == -1 ) {
+                    foundNextUrl = true;
+                    var nextUrl = userData.get('dailyReadUrls')[i]
+                    userData.add('visitedUrls', nextUrl);
+                    
+                    // Reset the list of visited URLs if all have been visited.
+                    if (userData.get('visitedUrls').length == userData.get('dailyReadUrls').length) {
+                        userData.set('visitedUrls', []);
+                    }
+                    
+                    // Update the data.
+                    userData.save();
+                }
+            }
+            
+            // Go to the URL.
+            window.location.href = nextUrl;
         },
         error: function(error) {
         }
     })
+}
+
+function logOut() {
+    Parse.User.logOut();
+    $('#sign-in').show();
+    $('#app').hide();
 }
